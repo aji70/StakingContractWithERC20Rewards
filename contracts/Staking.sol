@@ -17,6 +17,7 @@ contract Staking {
     uint TotalStaked;
     address private owner;
     address ajidokwuToken;
+    
     mapping (address => uint) stakeBalance;
     mapping (address => uint) stakeDuration;
     mapping (address => uint) lastStakedTime;
@@ -79,9 +80,16 @@ contract Staking {
         // require(block.timestamp >= stakeDuration[msg.sender]   , "You can't withdraw yet");
         // require(block.timestamp >= unlockTime, "You can't withdraw yet");
 
+        if (msg.sender == address(0)){
+            revert ADDRESS_ZERO_DETECTED();
+        }
+        if(block.timestamp <= stakeDuration[msg.sender]){
+            revert STAKE_TIME_YET_TO_ELAPSE();
+        }
         if(stakeBalance[msg.sender] <= 0){
             revert NO_STAKE_TO_WITHDRAW();
         }
+        
         
         // require(stakeBalance[msg.sender] > 0, "No stake to withdraw");
 
@@ -101,8 +109,7 @@ contract Staking {
         if (msg.sender == address(0)){
             revert ADDRESS_ZERO_DETECTED();
         }
-        // require(msg.sender != address(0), "Address zero detected");
-        // require(stakeBalance[msg.sender] > 0, "no stake to withdraw");
+        
          if(stakeBalance[msg.sender] <= 0){
         revert NO_STAKE_TO_WITHDRAW();
             }
@@ -127,7 +134,6 @@ contract Staking {
     function totalStakedBalance() external view returns (uint256) {
         return TotalStaked;
     }
-
     function _calcDuration() external   view returns(uint256, string memory){
        if(stakeBalance[msg.sender] == 0){
         return(0, "you have no stake to withdraw");

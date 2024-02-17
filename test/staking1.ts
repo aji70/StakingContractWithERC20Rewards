@@ -62,14 +62,17 @@ describe("Staking", function () {
 
   describe("Stake", () => {
     it("should revert if address zero tries to stake", async function () {
+      const stakeAmount = 1000;
       // Connect to the contract using the signer
       const { owner, staketaking, ZeroAddress } = await loadFixture(
         deployStakingFixture
       );
 
-      await expect(staking.connect(ZeroAddress).unstake()).to.be.rejected;
+      await expect(staking.connect(ZeroAddress).stake(stakeAmount, 20)).to.be
+        .rejected;
       expect(owner.address).to.not.equal(ZeroAddress);
     });
+
     it("should revert if recently received reward", async function () {
       const { ajidokwu, owner, staking, contractDeposit } = await loadFixture(
         deployStakingFixture
@@ -98,6 +101,7 @@ describe("Staking", function () {
       await expect(staking.connect(owner).stake(stakeAmount, 20)).to.be
         .rejected;
     });
+
     it("should revert if users tries to stake 0", async () => {
       const { ajidokwu, owner, staking, contractDeposit } = await loadFixture(
         deployStakingFixture
@@ -109,6 +113,7 @@ describe("Staking", function () {
       await expect(staking.connect(owner).stake(stakeAmount, stakedTime)).to.be
         .rejected;
     });
+
     it("should revert if user does not have enough tokens", async () => {
       const { ajidokwu, owner, staking, otherAccount, contractDeposit } =
         await loadFixture(deployStakingFixture);
@@ -119,6 +124,19 @@ describe("Staking", function () {
       await expect(staking.connect(otherAccount).stake(stakeAmount, stakedTime))
         .to.be.rejected;
     });
+
+    it("should revert if unstake time is not in the future", async () => {
+      const { ajidokwu, owner, staking, contractDeposit } = await loadFixture(
+        deployStakingFixture
+      );
+      const stakeAmount = 1000;
+      const stakedTime = 0;
+      await ajidokwu.connect(owner).transfer(staking.target, contractDeposit);
+      await ajidokwu.connect(owner).approve(staking.target, stakeAmount);
+      await expect(staking.connect(owner).stake(stakeAmount, stakedTime)).to.be
+        .rejected;
+    });
+
     it("Should Stake properly", async () => {
       const { ajidokwu, owner, staking, contractDeposit } = await loadFixture(
         deployStakingFixture
@@ -132,19 +150,46 @@ describe("Staking", function () {
         stakeAmount
       );
     });
-    it("should revert if unstake time is not in the future", async () => {
+  });
+
+  describe("Unstake", () => {
+    it("should revert if address zero tries to Unstake", async function () {
+      // Connect to the contract using the signer
+      const { owner, staketaking, ZeroAddress } = await loadFixture(
+        deployStakingFixture
+      );
+
+      await expect(staking.connect(ZeroAddress).unstake()).to.be.rejected;
+      expect(owner.address).to.not.equal(ZeroAddress);
+    });
+
+    it("Should revert if called before unstakedtime ", async () => {
       const { ajidokwu, owner, staking, contractDeposit } = await loadFixture(
         deployStakingFixture
       );
       const stakeAmount = 1000;
-      const stakedTime = 0;
+
       await ajidokwu.connect(owner).transfer(staking.target, contractDeposit);
       await ajidokwu.connect(owner).approve(staking.target, stakeAmount);
-      await expect(staking.connect(owner).stake(stakeAmount, stakedTime)).to.be
-        .rejected;
+      await staking.connect(owner).stake(stakeAmount, 20);
+
+      const stakedTime = await staking
+        .connect(owner)
+        .returnStakeDuration(owner.address);
+      const trialBefore = (await time.latest()) + 10;
+
+      await time.increaseTo(trialBefore);
+
+      // @ts-ignore
+
+      await expect(staking.connect(owner).unstake()).to.be.reverted;
     });
-  });
-  describe("Unstake", () => {
+
+    it("Should revert if user did not stake", async () => {
+      const { owner, staking } = await loadFixture(deployStakingFixture);
+      await expect(staking.connect(owner).unstake()).to.be.rejected;
+    });
+
     it("Should Unstake properly", async () => {
       const { ajidokwu, owner, staking, contractDeposit } = await loadFixture(
         deployStakingFixture
@@ -170,7 +215,23 @@ describe("Staking", function () {
       ).to.equal(0);
     });
   });
+
   describe("Emergency Withdraw", () => {
+    it("should revert if address zero tries to Unstake", async function () {
+      // Connect to the contract using the signer
+      const { owner, staketaking, ZeroAddress } = await loadFixture(
+        deployStakingFixture
+      );
+
+      await expect(staking.connect(ZeroAddress).emergencyWithdraw()).to.be
+        .rejected;
+      expect(owner.address).to.not.equal(ZeroAddress);
+    });
+    it("Should revert if user did not stake", async () => {
+      const { owner, staking } = await loadFixture(deployStakingFixture);
+      await expect(staking.connect(owner).emergencyWithdraw()).to.be.rejected;
+    });
+
     it("Should Unstake during Emergency properly", async () => {
       const { ajidokwu, owner, staking, stakeAmount, contractDeposit } =
         await loadFixture(deployStakingFixture);
