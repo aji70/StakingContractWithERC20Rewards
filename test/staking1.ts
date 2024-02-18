@@ -12,9 +12,6 @@ describe("Staking", function () {
   let staking: Staking;
   let ajidokwu: Ajidokwu20;
   async function deployStakingFixture() {
-    const tenSec = 10;
-    // const contractDeposit = 1000000000000000;
-
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
     const initialOwner = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
@@ -190,15 +187,19 @@ describe("Staking", function () {
       await expect(staking.connect(owner).unstake()).to.be.rejected;
     });
 
-    it("Should Unstake properly", async () => {
+    it.only("Should Unstake properly", async () => {
       const { ajidokwu, owner, staking, contractDeposit } = await loadFixture(
         deployStakingFixture
       );
-      const stakeAmount = 1000;
-
+      const stakeAmount = 2500;
       await ajidokwu.connect(owner).transfer(staking.target, contractDeposit);
+
+      const inbal = await ajidokwu.connect(owner).balanceOf(owner.address);
+      console.log(inbal);
       await ajidokwu.connect(owner).approve(staking.target, stakeAmount);
       await staking.connect(owner).stake(stakeAmount, 20);
+      const balb4 = await ajidokwu.connect(owner).balanceOf(owner.address);
+      console.log(balb4);
       expect(
         await staking.connect(owner).checkUserStakedBalance(owner.address)
       ).to.equal(stakeAmount);
@@ -213,6 +214,9 @@ describe("Staking", function () {
       expect(
         await staking.connect(owner).checkUserStakedBalance(owner.address)
       ).to.equal(0);
+      const balafter = await ajidokwu.connect(owner).balanceOf(owner.address);
+
+      console.log(balafter);
     });
   });
 
@@ -245,6 +249,22 @@ describe("Staking", function () {
       expect(
         await staking.connect(owner).checkUserStakedBalance(owner.address)
       ).to.equal(0);
+    });
+  });
+  describe("returns staked Balance", () => {
+    it("should return staker stake balance", async () => {
+      const { ajidokwu, owner, staking, contractDeposit } = await loadFixture(
+        deployStakingFixture
+      );
+      const stakeAmount = 1000;
+      const stakedTime = 20;
+      await ajidokwu.connect(owner).transfer(staking.target, contractDeposit);
+      await ajidokwu.connect(owner).approve(staking.target, stakeAmount);
+      await staking.connect(owner).stake(stakeAmount, stakedTime);
+      const stakedBal = await staking.connect(owner).totalStakedBalance();
+      expect(
+        await staking.connect(owner).checkUserStakedBalance(owner.address)
+      ).to.equal(stakedBal);
     });
   });
 });

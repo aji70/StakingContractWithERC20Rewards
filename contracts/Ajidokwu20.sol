@@ -10,7 +10,7 @@ contract Ajidokwu20 is ERC20, Ownable {
         ERC20("Ajidokwu20", "A20")
         Ownable(initialOwner)
     {
-        _mint(msg.sender, 50000000000000 * 10 ** 18);
+        _mint(msg.sender, 51 * 10 ** 15);
     }
 
     function mint(address to, uint256 amount) public onlyOwner {

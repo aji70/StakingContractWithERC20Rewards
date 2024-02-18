@@ -124,7 +124,7 @@ contract Staking {
     }
 
     function Calculatereward(uint256 _amount, uint _timeInSec)public pure returns(uint256){
-       uint256 _reward = (_amount * 1 * _timeInSec) / 100000;
+       uint256 _reward = (_amount * 7 * _timeInSec) / 100;
        return _reward;
     }
 
