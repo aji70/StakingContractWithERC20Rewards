@@ -187,19 +187,16 @@ describe("Staking", function () {
       await expect(staking.connect(owner).unstake()).to.be.rejected;
     });
 
-    it.only("Should Unstake properly", async () => {
+    it("Should Unstake properly", async () => {
       const { ajidokwu, owner, staking, contractDeposit } = await loadFixture(
         deployStakingFixture
       );
       const stakeAmount = 2500;
       await ajidokwu.connect(owner).transfer(staking.target, contractDeposit);
 
-      const inbal = await ajidokwu.connect(owner).balanceOf(owner.address);
-      console.log(inbal);
       await ajidokwu.connect(owner).approve(staking.target, stakeAmount);
       await staking.connect(owner).stake(stakeAmount, 20);
-      const balb4 = await ajidokwu.connect(owner).balanceOf(owner.address);
-      console.log(balb4);
+
       expect(
         await staking.connect(owner).checkUserStakedBalance(owner.address)
       ).to.equal(stakeAmount);
@@ -214,9 +211,6 @@ describe("Staking", function () {
       expect(
         await staking.connect(owner).checkUserStakedBalance(owner.address)
       ).to.equal(0);
-      const balafter = await ajidokwu.connect(owner).balanceOf(owner.address);
-
-      console.log(balafter);
     });
   });
 
