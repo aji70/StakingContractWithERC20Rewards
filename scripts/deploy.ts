@@ -1,21 +1,24 @@
 import { ethers } from "hardhat";
+// const { ethers } = require("hardhat");
 
 async function main() {
   const initialOwner = "0x09c5096AD92A3eb3b83165a4d177a53D3D754197";
-  const ajidokwuToken = await ethers.deployContract("Ajidokwu20", [
-    initialOwner,
+  const cohort7 = await ethers.deployContract("Cohort7", [initialOwner]);
+
+  await cohort7.waitForDeployment();
+
+  const stakingContract = await ethers.deployContract("Staking", [
+    cohort7.target,
   ]);
 
-  await ajidokwuToken.waitForDeployment();
-  // const staking = await ethers.deployContract("Ajidokwu20", [
-  //   ajidokwuToken.target,
-  // ]);
+  await stakingContract.waitForDeployment();
 
   console.log(
-    `Ajidokwu Token was deployed to ${ajidokwuToken.target}
+    ` Token was deployed to ${cohort7.target}
+
+    Staking contract was deployed to ${stakingContract.target}
     `
   );
-  // console.log(` staking contract was deployed to ${staking.target}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
