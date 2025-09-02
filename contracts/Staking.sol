@@ -86,7 +86,7 @@ contract Staking {
         require(stakeBalance[msg.sender] >= _amount, "Insufficient staked balance");
 
          // Transfer tokens
-         (bool success, ) = payable(address(this)).call{value: _amount}("");
+         (bool success, ) = payable(msg.sender).call{value: _amount}("");
         require(success, "Failed to send Ether");
 
         uint256 _stk = stakeBalance[msg.sender];
